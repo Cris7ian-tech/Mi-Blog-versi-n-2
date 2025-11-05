@@ -13,9 +13,9 @@ function App() {
     <MainLayout />
     <Card>
       <Card.Header>
-        CardHeader
+        CardHeader: Articulo relacionado
       </Card.Header>
-      
+
       <Card.Body>
         <div>
           <div>

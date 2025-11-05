@@ -1,7 +1,8 @@
 
 /*Componente Padre: Card */
 interface CardProps {
-  children: React.ReactNode
+  children: React.ReactNode;
+  className?: string
 }
 
 const Card = ({children}: CardProps) => {
