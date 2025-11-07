@@ -1,0 +1,34 @@
+{
+  "HabilidadesData": [
+    {
+      "titulo": "Comunicación efectiva",
+      "descripcion": "Saber transmitir ideas con claridad de forma verbal, escrita y no verbal, además de ser un buen oyente.",
+      "imagen": "/src/assets/comunicacion.png"
+    },
+    {
+      "titulo": "Trabajo en equipo",
+      "descripcion": "Ser capaz de trabajar en equipo con otros desarrolladores, colaboradores y clientes para alcanzar objetivos comunes y respetar diversas perspectivas.",
+      "imagen": "/src/assets/trabajo-en-equipo.png"
+    },
+    {
+      "titulo": "Empatia",
+      "descripcion": "Comprender y ponerse en el lugar del otro mejora las relaciones laborales y la resolución de conflictos.",
+      "imagen": "/src/assets/resolucion-de-problemas.png"
+    },
+    {
+      "titulo": "Resolución de problemas",
+      "descripcion": "Ser capaz de identificar problemas complejos y encontrar soluciones eficientes para resolverlos.",
+      "imagen": "/src/assets/resolucion-de-problemas.png"
+    },
+    {
+      "titulo": "Gestion de proyectos",
+      "descripcion": "Ser capaz de gestionar proyectos desde la fase inicial hasta la entrega final, asegurando la calidad y el cumplimiento de los objetivos.",
+      "imagen": "/src/assets/gestion-de-proyectos.png"
+    },
+    {
+      "titulo": "Creatividad",
+      "descripcion": "Ser capaz de generar ideas innovadoras y soluciones creativas para resolver problemas complejos.",
+      "imagen": "/src/assets/creatividad.png"
+    }
+  ]
+}

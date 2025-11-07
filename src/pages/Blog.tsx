@@ -3,7 +3,7 @@ import Card from "../componentes/ui/Card"
 
 const Blog = () => {
   return (
-    <section className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center p-8">
+    <section className="min-h-screen flex flex-col items-center justify-center p-8">
       <h2 className="text-3xl font-bold text-white mb-8">Artículos recientes</h2>
 
       <div className="flex flex-wrap justify-center gap-6">
