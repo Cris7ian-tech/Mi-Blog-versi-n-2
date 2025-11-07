@@ -15,5 +15,5 @@ body  {
 
 /* Estilos opcionales */
 body {
-  @apply bg-primary text-white;
+  background-color: #222222
 }

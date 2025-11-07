@@ -20,7 +20,7 @@ interface CardHeaderProps {
 
 const CardHeader = ({children}: CardHeaderProps) => {
   return (
-    <div className="bg-gray-100 px-4 py-2 font-semibold text-gray-800">
+    <div className="bg-gray-100 px-4 py-2 font-semibold text-gray-800 rounded-2xl">
       {children}
     </div>
   )
