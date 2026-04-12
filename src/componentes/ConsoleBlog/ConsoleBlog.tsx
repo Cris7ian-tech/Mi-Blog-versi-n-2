@@ -7,11 +7,15 @@ import type { HistoryItem, Post } from "./types";
 
 //Funcion on demand(Bajo demanda) TAB
 
-type AutocompleteResult = {
+type AutocompleteResult = 
+{
   suggestion: string;
+  matches?: string[];
 };
 
-const getAutocomplete = (value: string, posts: Post[]): AutocompleteResult => {
+
+
+const getAutoComplete = (value: string, posts: Post[]): AutocompleteResult => {
   const commands = [
     "help", "ls", "cat", "whoami", "date",
     "clear", "echo", "pwd", "history",
@@ -38,12 +42,21 @@ const getAutocomplete = (value: string, posts: Post[]): AutocompleteResult => {
     }
 
     if (matches.length === 1) {
-      return { suggestion: matches[0] };
-    }
+      return { 
+        suggestion: matches[0],
+        matches 
+  };
+}
+
+
 
     const prefix = getCommonPrefix(matches);
+    
     console.log("PREFIX:", prefix);
-      return { suggestion: prefix };
+      return { 
+        suggestion: prefix,
+        matches
+      };
   }
 
   // =========================
@@ -100,6 +113,9 @@ const getAutocomplete = (value: string, posts: Post[]): AutocompleteResult => {
 
 
 const ConsoleBlog = () => {
+
+    const lastKeyWasTab = useRef(false);
+
   const [suggestion, setSuggestion] = useState("");
 
   const { history, processCommand, addToHistory } = useTerminal();
@@ -107,10 +123,10 @@ const ConsoleBlog = () => {
   const [input, setInput] = useState("");
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  // const typedPosts = postsData as Post[];
-
+  
   //Nuevo estado: historial navegable con ↑ ↓ como una terminal real
   const [_historyIndex, setHistoryIndex] = useState<number | null>(null);
+
 
   // Auto-scroll al final de la consola cada vez que el historial cambia
   useEffect(() => {
@@ -118,6 +134,9 @@ const ConsoleBlog = () => {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [history]);
+
+
+
 
   const handleCommand = (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,6 +149,8 @@ const ConsoleBlog = () => {
     setHistoryIndex(null); // Reiniciamos el índice al enviar un comando
   };
 
+
+  //TextWriter
   const renderOutput = (item: HistoryItem) => {
     switch (item.type) {
       case "text":
@@ -145,6 +166,9 @@ const ConsoleBlog = () => {
     }
   };
 
+
+
+
   // 🔥 EVENTO PRINCIPAL DE TECLADO: comportamiento ghost + TAB
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // =========================
@@ -153,13 +177,32 @@ const ConsoleBlog = () => {
     if (e.key === "Tab") {
       e.preventDefault();
 
-      const { suggestion } = getAutocomplete(input, postsData as Post[]);
+      const result = getAutoComplete(input, postsData as Post[]);
 
-      if (!suggestion) return;
 
-      setInput(suggestion);
-      setSuggestion(suggestion);
+      // 🔥 DOBLE TAB → mostrar opciones 🔥
+      if (lastKeyWasTab.current) {
+        if (result.matches && result.matches.length > 1) {
+          addToHistory({
+            type: "list",
+            command: input,
+            output: result.matches
+          });
+        }
+        lastKeyWasTab.current = false;
+        return;
+      }
+
+      // 🟢 PRIMER TAB → autocompletar 🟢
+
+      if (result.suggestion) {
+        setInput(result.suggestion);
+        setSuggestion(result.suggestion);
+      }
+      lastKeyWasTab.current = true;
     }
+
+
 
     // =========================
     // ⬆️ HISTORIAL (ArrowUp)
@@ -271,7 +314,7 @@ const ConsoleBlog = () => {
                   const value = e.target.value;
                   setInput(value);
 
-                  const { suggestion } = getAutocomplete(
+                  const { suggestion } = getAutoComplete(
                     value,
                     postsData as Post[],
                   );
