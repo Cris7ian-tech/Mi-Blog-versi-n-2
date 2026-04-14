@@ -92,6 +92,7 @@ const useTerminal = () => {
         break;
 
       case "cat":
+        console.log("CAT ARG:", argument);
         if (!argument) {
           response = {
             type: "text",
@@ -125,9 +126,9 @@ const useTerminal = () => {
         };
         break;
 
-      // case "clear":
-      //   setHistory([]);
-      //   return;
+      case "clear":
+        setHistory([]);
+        return;
 
       case "":
         return;

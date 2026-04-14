@@ -7,18 +7,22 @@ import type { HistoryItem, Post } from "./types";
 
 //Funcion on demand(Bajo demanda) TAB
 
-type AutocompleteResult = 
-{
+type AutocompleteResult = {
   suggestion: string;
   matches?: string[];
 };
 
-
-
 const getAutoComplete = (value: string, posts: Post[]): AutocompleteResult => {
   const commands = [
-    "help", "ls", "cat", "whoami", "date",
-    "clear", "echo", "pwd", "history",
+    "help",
+    "ls",
+    "cat",
+    "whoami",
+    "date",
+    "clear",
+    "echo",
+    "pwd",
+    "history",
   ];
 
   const [cmd, ...args] = value.split(" ");
@@ -29,34 +33,26 @@ const getAutoComplete = (value: string, posts: Post[]): AutocompleteResult => {
   // 🔹 COMANDOS
   // =========================
   if (args.length === 0) {
-    const matches = commands.filter((c) =>
-      c.startsWith(normalizedCmd)
-    );
-
-    console.log("INPUT:", normalizedCmd);
-    console.log("MATCHES:", matches);
-
+    const matches = commands.filter((c) => c.startsWith(normalizedCmd));
 
     if (matches.length === 0) {
       return { suggestion: "" };
     }
 
     if (matches.length === 1) {
-      return { 
+      return {
         suggestion: matches[0],
-        matches 
-  };
-}
-
-
+        matches,
+      };
+    }
 
     const prefix = getCommonPrefix(matches);
-    
+
     console.log("PREFIX:", prefix);
-      return { 
-        suggestion: prefix,
-        matches
-      };
+    return {
+      suggestion: prefix,
+      matches,
+    };
   }
 
   // =========================
@@ -66,7 +62,7 @@ const getAutoComplete = (value: string, posts: Post[]): AutocompleteResult => {
     const files = posts.map((p) => p.filename);
 
     const matches = files.filter((f) =>
-      f.toLowerCase().startsWith(argument.toLowerCase())
+      f.toLowerCase().startsWith(argument.toLowerCase()),
     );
 
     if (matches.length === 0) {
@@ -74,20 +70,24 @@ const getAutoComplete = (value: string, posts: Post[]): AutocompleteResult => {
     }
 
     if (matches.length === 1) {
-      return { suggestion: `${cmd} ${matches[0]}` };
+      return {
+        suggestion: `${cmd} ${matches[0]}`,
+        matches,
+      };
     }
 
     const prefix = getCommonPrefix(matches);
 
-    return { suggestion: `${cmd} ${prefix}` };
+    return {
+      suggestion: `${cmd} ${prefix}`,
+      matches,
+    };
   }
 
   return { suggestion: "" };
 };
 
-
-
-  function getCommonPrefix(matches: string[]): string {
+function getCommonPrefix(matches: string[]): string {
   if (matches.length === 0) return "";
 
   let prefix = matches[0];
@@ -109,12 +109,14 @@ const getAutoComplete = (value: string, posts: Post[]): AutocompleteResult => {
   return prefix;
 }
 
-
-
-
 const ConsoleBlog = () => {
+  const matchesRef = useRef<string[]>([]);
 
-    const lastKeyWasTab = useRef(false);
+  const tabIndex = useRef(0);
+
+  const lastKeyWasTab = useRef(false);
+
+  const hasShownMatches = useRef(false); // 🔥 Anti Spam
 
   const [suggestion, setSuggestion] = useState("");
 
@@ -123,10 +125,9 @@ const ConsoleBlog = () => {
   const [input, setInput] = useState("");
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  
+
   //Nuevo estado: historial navegable con ↑ ↓ como una terminal real
   const [_historyIndex, setHistoryIndex] = useState<number | null>(null);
-
 
   // Auto-scroll al final de la consola cada vez que el historial cambia
   useEffect(() => {
@@ -135,9 +136,6 @@ const ConsoleBlog = () => {
     }
   }, [history]);
 
-
-
-
   const handleCommand = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -145,10 +143,9 @@ const ConsoleBlog = () => {
     if (!input.trim()) return;
     processCommand(input, postsData as Post[]);
     setInput("");
-    setSuggestion("");  // ❗no hay texto Ghost en la linea siguiente
+    setSuggestion(""); // ❗no hay texto Ghost en la linea siguiente
     setHistoryIndex(null); // Reiniciamos el índice al enviar un comando
   };
-
 
   //TextWriter
   const renderOutput = (item: HistoryItem) => {
@@ -166,43 +163,67 @@ const ConsoleBlog = () => {
     }
   };
 
-
-
-
   // 🔥 EVENTO PRINCIPAL DE TECLADO: comportamiento ghost + TAB
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // =========================
     // 🔷 AUTOCOMPLETADO (TAB)
     // =========================
     if (e.key === "Tab") {
+  
       e.preventDefault();
 
-      const result = getAutoComplete(input, postsData as Post[]);
+      // 👉 Primer TAB → calcular matches
+      if (!lastKeyWasTab.current) {
+        const result = getAutoComplete(input, postsData as Post[]);
 
-
-      // 🔥 DOBLE TAB → mostrar opciones 🔥
-      if (lastKeyWasTab.current) {
         if (result.matches && result.matches.length > 1) {
-          addToHistory({
-            type: "list",
-            command: input,
-            output: result.matches
-          });
+          matchesRef.current = result.matches;
+          tabIndex.current = 0;
+
+          const current = matchesRef.current[tabIndex.current];
+
+          const [currentCmd, ...rest] = input.split(" ");
+
+          if (rest.length > 0) {
+            // 👉 estamos en modo "comando + argumento"
+            setInput(`${currentCmd} ${current}`);
+            setSuggestion(`${currentCmd} ${current}`);
+          } else {
+            // 👉 estamos en modo "solo comando"
+            setInput(current);
+            setSuggestion(current);
+          }
+
+          tabIndex.current++;
+          lastKeyWasTab.current = true;
+          return;
         }
-        lastKeyWasTab.current = false;
+
+        if (result.suggestion) {
+          setInput(result.suggestion);
+          setSuggestion(result.suggestion);
+        }
+
         return;
       }
 
-      // 🟢 PRIMER TAB → autocompletar 🟢
+      // 👉 Tabs siguientes → navegar
+      if (matchesRef.current.length > 1) {
+        const current = matchesRef.current[tabIndex.current];
 
-      if (result.suggestion) {
-        setInput(result.suggestion);
-        setSuggestion(result.suggestion);
+        if (input.startsWith("cat ")) {
+          setInput(`cat ${current}`);
+          setSuggestion(`cat ${current}`);
+        } else {
+          setInput(current);
+          setSuggestion(current);
+        }
+
+        tabIndex.current = (tabIndex.current + 1) % matchesRef.current.length;
+
+        return;
       }
-      lastKeyWasTab.current = true;
     }
-
-
 
     // =========================
     // ⬆️ HISTORIAL (ArrowUp)
@@ -243,7 +264,12 @@ const ConsoleBlog = () => {
         return newIndex;
       });
     }
-  };
+    if (e.key !== "Tab") {
+    lastKeyWasTab.current = false;
+  }
+};
+
+  
 
   return (
     <section className="min-h-screen bg-[#1A1C23] flex flex-col items-center justify-center p-6">
@@ -312,12 +338,19 @@ const ConsoleBlog = () => {
                 onKeyDown={handleKeyDown}
                 onChange={(e) => {
                   const value = e.target.value;
+
                   setInput(value);
+
+                  tabIndex.current = 0; // 🔥 reset navegación
+                  hasShownMatches.current = false; // Reset
+                  lastKeyWasTab.current = false;
+                  matchesRef.current = [];
 
                   const { suggestion } = getAutoComplete(
                     value,
                     postsData as Post[],
                   );
+
                   setSuggestion(suggestion);
                 }}
               />
